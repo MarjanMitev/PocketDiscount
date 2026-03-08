@@ -1,0 +1,62 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+dist/
+build/
+.next/
+
+# Expo / React Native
+.expo/
+apps/frontend/.expo/
+apps/frontend/dist/
+apps/frontend/web-build/
+apps/frontend/ios/
+apps/frontend/android/
+*.ipa
+*.apk
+*.aab
+
+# Environment files
+.env
+.env.local
+.env.*.local
+apps/backend/.env
+
+# Backend runtime data (downloaded product images)
+apps/backend/data/
+
+# Test output
+coverage/
+apps/backend/coverage/
+apps/frontend/coverage/
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Stale top-level files (moved to apps/frontend)
+/app/
+/components/
+/scripts/
+/assets/
+
+# Puppeteer browser cache (large binary, not needed in repo)
+apps/backend/.local-chromium/
