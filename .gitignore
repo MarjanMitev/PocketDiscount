@@ -55,7 +55,6 @@ Thumbs.db
 # Stale top-level files (moved to apps/frontend)
 /app/
 /components/
-/scripts/
 /assets/
 
 # Puppeteer browser cache (large binary, not needed in repo)
