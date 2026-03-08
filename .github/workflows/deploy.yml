@@ -11,6 +11,7 @@ jobs:
 
     steps:
       - name: Deploy backend (pocketdiscount-api)
+        if: ${{ secrets.RENDER_DEPLOY_HOOK_BACKEND != '' }}
         run: |
           curl -fsSL "${{ secrets.RENDER_DEPLOY_HOOK_BACKEND }}" \
             -X POST \
@@ -20,6 +21,7 @@ jobs:
             -w "Backend deploy triggered: HTTP %{http_code}\n"
 
       - name: Deploy frontend (pocketdiscount-web)
+        if: ${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND != '' }}
         run: |
           curl -fsSL "${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND }}" \
             -X POST \
@@ -30,8 +32,17 @@ jobs:
 
       - name: Summary
         run: |
-          echo "### Deploy triggered" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Both Render services have been queued for deployment." >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Track progress at https://dashboard.render.com" >> $GITHUB_STEP_SUMMARY
+          if [ -z "$HOOK_BACKEND" ] || [ -z "$HOOK_FRONTEND" ]; then
+            echo "### Deploy hooks not yet configured" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Add **RENDER_DEPLOY_HOOK_BACKEND** and **RENDER_DEPLOY_HOOK_FRONTEND** as GitHub secrets to enable auto-deploy." >> $GITHUB_STEP_SUMMARY
+            echo "See \`docs/RENDER_DEPLOYMENT.md\` for instructions." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### Deploy triggered" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Both Render services have been queued for deployment." >> $GITHUB_STEP_SUMMARY
+            echo "Track progress at https://dashboard.render.com" >> $GITHUB_STEP_SUMMARY
+          fi
+        env:
+          HOOK_BACKEND: ${{ secrets.RENDER_DEPLOY_HOOK_BACKEND }}
+          HOOK_FRONTEND: ${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND }}
