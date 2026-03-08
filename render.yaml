@@ -1,10 +1,17 @@
 ## Render Blueprint — https://render.com/docs/blueprint-spec
 ## Declares: backend Web Service + frontend Static Site + Postgres database
+##
+## Notes on plans (as of 2025):
+##   - Web Services: free tier removed; "starter" ($7/mo) is the lowest paid tier.
+##     Omit `plan` to use the dashboard default, or set `starter` explicitly.
+##   - Static Sites: still free (no plan required).
+##   - PostgreSQL: free tier still available on the `free` plan (90-day expiry).
 
 databases:
   - name: pocketdiscount-db
     databaseName: pocketdiscount
     user: pocketdiscount
+    # Free-tier Postgres (expires after 90 days; upgrade to paid when ready)
     plan: free
 
 services:
@@ -12,7 +19,7 @@ services:
   - type: web
     name: pocketdiscount-api
     runtime: node
-    plan: free
+    # plan: starter   ← uncomment and set a plan if Render requires it
     rootDir: apps/backend
     buildCommand: npm install && npm run build
     startCommand: node dist/main.js
@@ -32,13 +39,13 @@ services:
       - key: PORT
         value: 10000
 
-  # ── Expo Web (Static Site) ───────────────────────────────────────────────────
+  # ── Expo Web (Static Site — free) ───────────────────────────────────────────
   - type: web
     name: pocketdiscount-web
     runtime: static
-    plan: free
+    # Static sites are free on Render; no plan needed
     rootDir: apps/frontend
-    buildCommand: npm install && npx expo export --platform web
+    buildCommand: npm install --legacy-peer-deps && npx expo export --platform web
     staticPublishPath: dist
     headers:
       - path: /*
@@ -53,6 +60,6 @@ services:
           name: pocketdiscount-api
           type: web
           property: host
-        # append /api — Render doesn't support string concatenation in blueprints,
-        # so set EXPO_PUBLIC_API_URL manually in the Render dashboard after first deploy:
-        #   https://<pocketdiscount-api-url>/api
+        # NOTE: After first deploy, manually set EXPO_PUBLIC_API_URL in the
+        # Render dashboard to: https://<pocketdiscount-api>.onrender.com/api
+        # (Render blueprints don't support string concatenation for env vars)
