@@ -11,9 +11,14 @@ jobs:
 
     steps:
       - name: Deploy backend (pocketdiscount-api)
-        if: ${{ secrets.RENDER_DEPLOY_HOOK_BACKEND != '' }}
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_BACKEND }}
         run: |
-          curl -fsSL "${{ secrets.RENDER_DEPLOY_HOOK_BACKEND }}" \
+          if [ -z "$HOOK" ]; then
+            echo "⚠ RENDER_DEPLOY_HOOK_BACKEND not set – skipping backend deploy."
+            exit 0
+          fi
+          curl -fsSL "$HOOK" \
             -X POST \
             --retry 3 \
             --retry-delay 5 \
@@ -21,9 +26,14 @@ jobs:
             -w "Backend deploy triggered: HTTP %{http_code}\n"
 
       - name: Deploy frontend (pocketdiscount-web)
-        if: ${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND != '' }}
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND }}
         run: |
-          curl -fsSL "${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND }}" \
+          if [ -z "$HOOK" ]; then
+            echo "⚠ RENDER_DEPLOY_HOOK_FRONTEND not set – skipping frontend deploy."
+            exit 0
+          fi
+          curl -fsSL "$HOOK" \
             -X POST \
             --retry 3 \
             --retry-delay 5 \
@@ -31,6 +41,9 @@ jobs:
             -w "Frontend deploy triggered: HTTP %{http_code}\n"
 
       - name: Summary
+        env:
+          HOOK_BACKEND: ${{ secrets.RENDER_DEPLOY_HOOK_BACKEND }}
+          HOOK_FRONTEND: ${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND }}
         run: |
           if [ -z "$HOOK_BACKEND" ] || [ -z "$HOOK_FRONTEND" ]; then
             echo "### Deploy hooks not yet configured" >> $GITHUB_STEP_SUMMARY
@@ -38,11 +51,8 @@ jobs:
             echo "Add **RENDER_DEPLOY_HOOK_BACKEND** and **RENDER_DEPLOY_HOOK_FRONTEND** as GitHub secrets to enable auto-deploy." >> $GITHUB_STEP_SUMMARY
             echo "See \`docs/RENDER_DEPLOYMENT.md\` for instructions." >> $GITHUB_STEP_SUMMARY
           else
-            echo "### Deploy triggered" >> $GITHUB_STEP_SUMMARY
+            echo "### Deploy triggered ✓" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "Both Render services have been queued for deployment." >> $GITHUB_STEP_SUMMARY
+            echo "Both Render services queued for deployment." >> $GITHUB_STEP_SUMMARY
             echo "Track progress at https://dashboard.render.com" >> $GITHUB_STEP_SUMMARY
           fi
-        env:
-          HOOK_BACKEND: ${{ secrets.RENDER_DEPLOY_HOOK_BACKEND }}
-          HOOK_FRONTEND: ${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND }}
