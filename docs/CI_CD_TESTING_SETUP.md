@@ -7,7 +7,7 @@ PocketDiscount uses **GitHub Actions** for CI/CD with two workflows:
 1. **PR Checks** — runs automatically on every pull request targeting `main`
 2. **Deploy** — runs automatically on every merge to `main`
 
-Deployment target is **Render.com** (NestJS Web Service + Expo Static Site + Postgres).
+Deployment target is **Railway** (NestJS Web Service + Expo Static Site + Postgres). See `docs/RAILWAY_DEPLOYMENT.md` for full setup.
 
 ---
 
@@ -22,11 +22,10 @@ Developer → branch → PR → GitHub Actions (test-backend + test-frontend)
                                     ↓
                     ┌───────────────┴───────────────┐
                     ↓                               ↓
-          Render: pocketdiscount-api      Render: pocketdiscount-web
+          Railway: pocketdiscount-api     Railway: pocketdiscount-web
           (NestJS Web Service)            (Expo Static Site)
                     ↓
-          Render: pocketdiscount-db
-          (PostgreSQL)
+          Railway: PostgreSQL
 ```
 
 ---
@@ -52,8 +51,9 @@ Sends a `POST` request to each Render deploy hook URL (stored as GitHub secrets)
 
 | Secret Name | What it deploys |
 |-------------|----------------|
-| `RENDER_DEPLOY_HOOK_BACKEND` | `pocketdiscount-api` (NestJS) |
-| `RENDER_DEPLOY_HOOK_FRONTEND` | `pocketdiscount-web` (Expo static) |
+| `RAILWAY_TOKEN` | Railway account auth token |
+| `RAILWAY_SERVICE_ID_BACKEND` | `pocketdiscount-api` (NestJS) |
+| `RAILWAY_SERVICE_ID_FRONTEND` | `pocketdiscount-web` (Expo static) |
 
 ---
 
@@ -154,12 +154,15 @@ gh pr create --title "feat: my change" --body "Description here"
 
 ## Adding GitHub Secrets (for deploy workflow)
 
-After Render services are created:
+After Railway services are created (see `docs/RAILWAY_DEPLOYMENT.md`):
 
 ```bash
-# Get deploy hook URLs from: Render dashboard → service → Settings → Deploy Hook
-gh secret set RENDER_DEPLOY_HOOK_BACKEND --body 'https://api.render.com/deploy/srv-xxx?key=yyy'
-gh secret set RENDER_DEPLOY_HOOK_FRONTEND --body 'https://api.render.com/deploy/srv-zzz?key=www'
+# RAILWAY_TOKEN: Railway dashboard → Account Settings → Tokens
+gh secret set RAILWAY_TOKEN --body 'your-railway-token'
+
+# Service IDs: Railway dashboard → service → Settings → Service ID
+gh secret set RAILWAY_SERVICE_ID_BACKEND --body 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
+gh secret set RAILWAY_SERVICE_ID_FRONTEND --body 'yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy'
 ```
 
 Verify secrets are set:

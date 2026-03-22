@@ -1,0 +1,13 @@
+# Railway config for pocketdiscount-web (Expo static frontend)
+# Docs: https://docs.railway.app/reference/config-as-code
+
+[build]
+builder = "NIXPACKS"
+buildCommand = "npm install --legacy-peer-deps && npx expo export --platform web"
+
+[deploy]
+# Serve the exported static site on the Railway-assigned PORT
+startCommand = "npx serve dist --single -l $PORT"
+healthcheckTimeout = 60
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3

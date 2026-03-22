@@ -1,4 +1,4 @@
-name: Deploy to Render
+name: Deploy to Railway
 
 on:
   push:
@@ -6,53 +6,56 @@ on:
 
 jobs:
   deploy:
-    name: Trigger Render deploys
+    name: Deploy to Railway
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli@latest
+
       - name: Deploy backend (pocketdiscount-api)
+        working-directory: apps/backend
         env:
-          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_BACKEND }}
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID_BACKEND }}
         run: |
-          if [ -z "$HOOK" ]; then
-            echo "⚠ RENDER_DEPLOY_HOOK_BACKEND not set – skipping backend deploy."
+          if [ -z "$RAILWAY_TOKEN" ]; then
+            echo "RAILWAY_TOKEN not set – skipping deploy. Add it as a GitHub secret to enable auto-deploy."
             exit 0
           fi
-          curl -fsSL "$HOOK" \
-            -X POST \
-            --retry 3 \
-            --retry-delay 5 \
-            -o /dev/null \
-            -w "Backend deploy triggered: HTTP %{http_code}\n"
+          railway up --service "$RAILWAY_SERVICE_ID" --detach
+          echo "Backend deploy triggered on Railway."
 
       - name: Deploy frontend (pocketdiscount-web)
+        working-directory: apps/frontend
         env:
-          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND }}
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID_FRONTEND }}
         run: |
-          if [ -z "$HOOK" ]; then
-            echo "⚠ RENDER_DEPLOY_HOOK_FRONTEND not set – skipping frontend deploy."
+          if [ -z "$RAILWAY_TOKEN" ]; then
+            echo "RAILWAY_TOKEN not set – skipping deploy."
             exit 0
           fi
-          curl -fsSL "$HOOK" \
-            -X POST \
-            --retry 3 \
-            --retry-delay 5 \
-            -o /dev/null \
-            -w "Frontend deploy triggered: HTTP %{http_code}\n"
+          railway up --service "$RAILWAY_SERVICE_ID" --detach
+          echo "Frontend deploy triggered on Railway."
 
       - name: Summary
         env:
-          HOOK_BACKEND: ${{ secrets.RENDER_DEPLOY_HOOK_BACKEND }}
-          HOOK_FRONTEND: ${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND }}
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          if [ -z "$HOOK_BACKEND" ] || [ -z "$HOOK_FRONTEND" ]; then
-            echo "### Deploy hooks not yet configured" >> $GITHUB_STEP_SUMMARY
+          if [ -z "$RAILWAY_TOKEN" ]; then
+            echo "### Railway deploy skipped — secrets not configured" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "Add **RENDER_DEPLOY_HOOK_BACKEND** and **RENDER_DEPLOY_HOOK_FRONTEND** as GitHub secrets to enable auto-deploy." >> $GITHUB_STEP_SUMMARY
-            echo "See \`docs/RENDER_DEPLOYMENT.md\` for instructions." >> $GITHUB_STEP_SUMMARY
+            echo "Add the following GitHub secrets to enable auto-deploy after every merge:" >> $GITHUB_STEP_SUMMARY
+            echo "- \`RAILWAY_TOKEN\` — from Railway dashboard → Account Settings → Tokens" >> $GITHUB_STEP_SUMMARY
+            echo "- \`RAILWAY_SERVICE_ID_BACKEND\` — service ID of pocketdiscount-api" >> $GITHUB_STEP_SUMMARY
+            echo "- \`RAILWAY_SERVICE_ID_FRONTEND\` — service ID of pocketdiscount-web" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "See \`docs/RAILWAY_DEPLOYMENT.md\` for full setup instructions." >> $GITHUB_STEP_SUMMARY
           else
-            echo "### Deploy triggered ✓" >> $GITHUB_STEP_SUMMARY
+            echo "### Deployed to Railway ✓" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "Both Render services queued for deployment." >> $GITHUB_STEP_SUMMARY
-            echo "Track progress at https://dashboard.render.com" >> $GITHUB_STEP_SUMMARY
+            echo "Both services are deploying. Track at https://railway.app/dashboard" >> $GITHUB_STEP_SUMMARY
           fi
