@@ -69,9 +69,11 @@ export class ScrapersService {
       this.cache[scraper.retailerName] = toList(results[i]);
     });
     const all = Object.values(this.cache).flat();
-    this.logger.log(`Scrape complete. Total: ${all.length} products. Downloading images...`);
-    await this.productImages.replaceWithLocalImages(all);
     this.lastFetched = new Date();
+    this.logger.log(`Scrape complete. Total: ${all.length} products. Downloading images in background...`);
+    this.productImages.replaceWithLocalImages(all).catch((err) =>
+      this.logger.warn(`Background image download failed: ${err}`),
+    );
     return this.cache;
   }
 
