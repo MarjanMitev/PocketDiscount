@@ -2,8 +2,8 @@
 # Docs: https://docs.railway.app/reference/config-as-code
 
 [build]
-builder = "NIXPACKS"
-buildCommand = "npm install && npm run build"
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
 
 [deploy]
 startCommand = "node dist/main.js"
